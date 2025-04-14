@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Responsive Calculator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: #000;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .calculator-container {
+      text-align: center;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .calculation {
+      font-size: 9vw;
+      text-align: left;
+      margin-bottom: 20px;
+      padding: 10px;
+      word-wrap: break-word;
+    }
+
+    p {
+      margin: 10px 0;
+    }
+
+    .calculator-button {
+      width: 20vw;
+      max-width: 60px;
+      height: 20vw;
+      max-height: 60px;
+      font-size: 6vw;
+      max-font-size: 20px;
+      border: none;
+      border-radius: 50%;
+      margin: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .gray-button {
+      background-color: #333;
+      color: white;
+    }
+
+    .gray-button:hover {
+      background-color: #444;
+    }
+
+    .orange-button {
+      background-color: orange;
+      color: white;
+    }
+
+    .orange-button:hover {
+      background-color: #e69500;
+    }
+
+    .clear-button {
+      width: 90%;
+      border-radius: 30px;
+      font-size: 5vw;
+      max-width: 260px;
+    }
+
+    .history-container {
+      width: 100%;
+      max-width: 320px;
+      text-align: left;
+      margin-top: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .history-entry {
+      background-color: #333;
+      color: white;
+      padding: 10px;
+      margin: 5px 0;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.2s;
+    }
+
+    .history-entry:hover {
+      background-color: #444;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: transparent;
+      border: 2px solid white;
+      color: white;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    @media (min-width: 500px) {
+      .calculation {
+        font-size: 48px;
+      }
+      .calculator-button {
+        width: 60px;
+        height: 60px;
+        font-size: 20px;
+      }
+      .clear-button {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+
+  <div class="calculator-container">
+    <p class="js-calculation calculation">0</p>
+
+    <p>
+      <button class="calculator-button gray-button" onclick="updateCalculation('1')">1</button>
+      <button class="calculator-button gray-button" onclick="updateCalculation('2')">2</button>
+      <button class="calculator-button gray-button" onclick="updateCalculation('3')">3</button>
+      <button class="calculator-button orange-button" onclick="updateCalculation(' + ')">+</button>
+    </p>
+
+    <p>
+      <button class="calculator-button gray-button" onclick="updateCalculation('4')">4</button>
+      <button class="calculator-button gray-button" onclick="updateCalculation('5')">5</button>
+      <button class="calculator-button gray-button" onclick="updateCalculation('6')">6</button>
+      <button class="calculator-button orange-button" onclick="updateCalculation(' - ')">-</button>
+    </p>
+
+    <p>
+      <button class="calculator-button gray-button" onclick="updateCalculation('7')">7</button>
+      <button class="calculator-button gray-button" onclick="updateCalculation('8')">8</button>
+      <button class="calculator-button gray-button" onclick="updateCalculation('9')">9</button>
+      <button class="calculator-button orange-button" onclick="updateCalculation(' * ')">*</button>
+    </p>
+
+    <p>
+      <button class="calculator-button gray-button" onclick="updateCalculation('0')">0</button>
+      <button class="calculator-button gray-button" onclick="updateCalculation('.')">.</button>
+      <button class="calculator-button gray-button" onclick="evaluateCalculation()">=</button>
+      <button class="calculator-button orange-button" onclick="updateCalculation(' / ')">/</button>
+    </p>
+
+    <p>
+      <button class="calculator-button gray-button clear-button" onclick="clearCalculation()">Clear</button>
+    </p>
+  </div>
+
+  <div class="history-container" id="historyContainer">
+    <!-- History Entries Will Appear Here -->
+  </div>
+
+  <script>
+    let calculation = localStorage.getItem('calculation') || '';
+    let history = JSON.parse(localStorage.getItem('history')) || [];
+    let isDarkMode = localStorage.getItem('theme') === 'dark';
+
+    displayCalculation();
+    displayHistory();
+    updateThemeButton();
+
+    function updateCalculation(value) {
+      calculation += value;
+      displayCalculation();
+      localStorage.setItem('calculation', calculation);
+    }
+
+    function displayCalculation() {
+      document.querySelector('.js-calculation').innerHTML = calculation || '0';
+    }
+
+    function evaluateCalculation() {
+      try {
+        calculation = eval(calculation).toString();
+        displayCalculation();
+        localStorage.setItem('calculation', calculation);
+        addToHistory(calculation);
+      } catch {
+        calculation = 'Error';
+        displayCalculation();
+      }
+    }
+
+    function clearCalculation() {
+      calculation = '';
+      displayCalculation();
+      localStorage.setItem('calculation', calculation);
+    }
+
+    function addToHistory(result) {
+      if (history.length >= 10) history.shift();
+      history.push(result);
+      localStorage.setItem('history', JSON.stringify(history));
+      displayHistory();
+    }
+
+    function displayHistory() {
+      const historyContainer = document.getElementById('historyContainer');
+      historyContainer.innerHTML = '';
+      history.forEach((entry) => {
+        const entryElement = document.createElement('div');
+        entryElement.classList.add('history-entry');
+        entryElement.textContent = entry;
+        entryElement.onclick = () => updateCalculation(entry);
+        historyContainer.appendChild(entryElement);
+      });
+    }
+
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+      updateTheme();
+    }
+
+    function updateTheme() {
+      document.body.style.backgroundColor = isDarkMode ? '#000' : '#fff';
+      document.body.style.color = isDarkMode ? '#fff' : '#000';
+      updateThemeButton();
+    }
+
+    function updateThemeButton() {
+      const themeButton = document.querySelector('.theme-toggle');
+      themeButton.textContent = isDarkMode ? '🌞' : '🌙';
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const validKeys = '0123456789.+-*/';
+      if (validKeys.includes(e.key)) {
+        updateCalculation(e.key);
+      } else if (e.key === 'Enter') {
+        evaluateCalculation();
+      } else if (e.key === 'Backspace') {
+        calculation = calculation.slice(0, -1);
+        displayCalculation();
+      } else if (e.key === 'Escape') {
+        clearCalculation();
+      }
+    });
+  </script>
+</body>
+</html>
